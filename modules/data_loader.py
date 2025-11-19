@@ -1,17 +1,14 @@
 import pandas as pd
 import streamlit as st
+import gspread 
 import os
 
-FILE_PATH = os.path.join('dados', 'Organização ESF - Respostas ao Formulário 1.csv')
-COLUNA_ESF = 'De qual ESF você é?' 
+GOOGLE_SHEET_TITLE = st.secrets["app_config"]["google_sheet_title"] 
+COLUNA_ESF = 'De qual ESF você é?'
 VALOR_IGNORAR = 'Em Branco'
 
 def fix_encoding_corruption(text: str) -> str:
-    """
-    Tenta corrigir a corrupção comum de encoding (ex: Ã© -> é)
-    aplicando a re-codificação de latin1 para utf8.
-    Isso é aplicado tanto nos nomes das colunas quanto no conteúdo das células.
-    """
+    """Tenta corrigir a corrupção de encoding em valores de texto."""
     try:
         if isinstance(text, str):
             return text.encode('latin1').decode('utf8')
@@ -21,29 +18,30 @@ def fix_encoding_corruption(text: str) -> str:
 
 @st.cache_data
 def load_data():
-    """Carrega o DataFrame, priorizando UTF-8, e realiza a limpeza inicial."""
-    print(f"Tentando carregar o arquivo: {FILE_PATH}")
-    
-    df = None
-    
+    """
+    Autentica com o Google Sheets API usando st.secrets e carrega os dados.
+    """
+    print(f"Tentando carregar dados do Google Sheet: {GOOGLE_SHEET_TITLE}")
+
     try:
-        df = pd.read_csv(FILE_PATH, sep=',', encoding='utf-8')
-    except UnicodeDecodeError:
-        try:
-            df = pd.read_csv(FILE_PATH, sep=';', encoding='utf-8')
-        except UnicodeDecodeError:
-            try:
-                df = pd.read_csv(FILE_PATH, sep=',', encoding='latin1')
-            except Exception:
-                try:
-                    df = pd.read_csv(FILE_PATH, sep=';', encoding='latin1')
-                except Exception as e:
-                    st.error(f"Erro: Não foi possível carregar o arquivo. {e}")
-                    return None
-                    
-    if df is None:
+        gc = gspread.service_account_from_dict(st.secrets["gcp_service_account"])
+
+        spreadsheet = gc.open(GOOGLE_SHEET_TITLE)
+        
+        worksheet = spreadsheet.sheet1 
+        
+        data = worksheet.get_all_records()
+        df = pd.DataFrame(data)
+
+    except Exception as e:
+        st.error(f"""
+        Erro ao carregar dados do Google Sheets.
+        Verifique as permissões da Service Account e o nome/ID da planilha.
+        Detalhes: {e}
+        """)
         return None
 
+    
     df.columns = df.columns.str.strip()
     df.columns = [fix_encoding_corruption(col) for col in df.columns]
     
@@ -56,11 +54,11 @@ def load_data():
     for col in df.select_dtypes(include=['object']).columns:
         df[col] = df[col].astype(str).str.strip()
 
-    print("Dados carregados e limpos com sucesso.")
+    print("Dados carregados e limpos com sucesso a partir do Google Sheets.")
     return df
 
 def get_esf_list(df):
-    """Retorna uma lista ordenada e única de todos os nomes de ESF."""
+    """Retorna uma lista ordenada e única de todos os nomes de ESF, com encoding corrigido."""
     if df is not None:
         esf_values = df[COLUNA_ESF].apply(fix_encoding_corruption)
         return sorted(esf_values.unique())
