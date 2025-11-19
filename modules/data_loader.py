@@ -41,21 +41,22 @@ def load_data():
         """)
         return None
 
-    
     df.columns = df.columns.str.strip()
     df.columns = [fix_encoding_corruption(col) for col in df.columns]
-    
-    df = df[df[COLUNA_ESF] != COLUNA_ESF] 
-    
-    df = df[df[COLUNA_ESF] != VALOR_IGNORAR]
-    
-    df = df.dropna(subset=[COLUNA_ESF])
     
     for col in df.select_dtypes(include=['object']).columns:
         df[col] = df[col].astype(str).str.strip()
 
+    df = df[df[COLUNA_ESF] != COLUNA_ESF] 
+    
+    df = df[df[COLUNA_ESF] != VALOR_IGNORAR]
+
+    df[COLUNA_ESF].replace('', pd.NA, inplace=True)
+    
+    df = df.dropna(subset=[COLUNA_ESF])
+
     print("Dados carregados e limpos com sucesso a partir do Google Sheets.")
-    return df
+    return df 
 
 def get_esf_list(df):
     """Retorna uma lista ordenada e única de todos os nomes de ESF, com encoding corrigido."""
