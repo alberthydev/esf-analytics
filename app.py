@@ -9,16 +9,16 @@ st.set_page_config(
 )
 
 st.title("ESF-Analytics - Dashboard")
-st.markdown("Análise de Satisfação e Organização por Estratégia Saúde da Família (ESF).")
+st.markdown("Analise de Satisfacao e Organização por Estrategia Saude da Família (ESF).")
 
 df = load_data()
 
 if df is not None:
-    st.sidebar.header("Opções de Análise")
+    st.sidebar.header("Opcoes de Analise")
 
     esf_list = get_esf_list(df)
     esf_selecionado = st.sidebar.selectbox(
-        "Selecione o ESF para Análise"
+        "Selecione o ESF para Analise",
         options=esf_list
     )
 
@@ -30,7 +30,7 @@ if df is not None:
 
     df_filtrado = df[df[COLUNA_ESF] == esf_selecionado]
 
-    st.header(f"Análise Detalhada: **{esf_selecionado}**")
+    st.header(f"Analise Detalhada: **{esf_selecionado}**")
     st.info(f"Total de Respostas Coletadas para **{esf_selecionado}**: **{len(df_filtrado)}**")
 
     if not df_filtrado.empty:
@@ -38,8 +38,8 @@ if df is not None:
 
         st.plotly_chart(fig, use_container_width=True)
 
-        st.subheader(f"Tabela de Frequência para: {coluna_selecionada}")
-        df_counts = df_filtrado[coluna_selecionada.value_counts().reset_index()]
+        st.subheader(f"Tabela de Frequencia para: {coluna_selecionada}")
+        df_counts = df_filtrado[coluna_selecionada].value_counts().reset_index() 
         df_counts.columns = ['Resposta', 'Contagem']
         df_counts['% do Total'] = (df_counts['Contagem'] / df_counts['Contagem'].sum() * 100).round(1).astype(str) + '%'
         st.dataframe(df_counts, use_container_width=True)

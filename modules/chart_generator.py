@@ -18,8 +18,8 @@ def create_esf_bar_chart(df: pd.DataFrame, column_name: str, esf_name: str):
         x='Contagem',
         y='Resposta',
         orientation='h',
-        title=f'Distribuição de Respostas: "{column_name}" em {esf_name}',
-        labels={'Resposta': 'Opção de Resposta', 'Contagem': 'Frequência (Nº de Respostas)'},
+        title=f'Distribuicão de Respostas: "{column_name}" em {esf_name}',
+        labels={'Resposta': 'Opção de Resposta', 'Contagem': 'Frequancia (N de Respostas)'},
         color='Contagem',
         color_continuous_scale=px.colors.sequential.Teal,
     )
