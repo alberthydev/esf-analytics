@@ -82,9 +82,3 @@ def get_chart_columns(df):
     
     chart_cols = [col for col in df.columns if col not in colunas_para_ignorar]
     return chart_cols
-
-SUGGESTED_CHART_COLUMNS = [
-    'Quanto tempo você levou para conseguir essa consulta?',
-    'Como você avalia a forma de marcação das consultas?',
-    'Como você avalia a forma de marcação de exames laboratoriais?'
-]
